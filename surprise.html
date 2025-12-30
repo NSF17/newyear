@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>System Fixing…</title>
+
+  <style>
+    :root{
+      --bg1:#0b1220;
+      --bg2:#121a2b;
+      --card: rgba(255,255,255,0.08);
+      --card2: rgba(255,255,255,0.12);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.70);
+      --shadow: 0 25px 60px rgba(0,0,0,0.45);
+      --radius: 18px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 20% 15%, rgba(255,90,140,0.22), transparent 55%),
+        radial-gradient(900px 600px at 85% 25%, rgba(80,160,255,0.20), transparent 55%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      overflow:hidden;
+    }
+
+    /* Broken website logo watermark */
+    .broken-logo{
+      position:fixed;
+      inset:0;
+      display:grid;
+      place-items:center;
+      pointer-events:none;
+      opacity:0.18;
+      filter: blur(0.2px);
+      transform: translateZ(0);
+    }
+    .broken-logo svg{
+      width:min(70vw,700px);
+      height:auto;
+    }
+    .noise{
+      position:fixed;
+      inset:0;
+      background-image:
+        radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 3px 3px;
+      opacity:0.15;
+      mix-blend-mode: overlay;
+      pointer-events:none;
+    }
+
+    .wrap{
+      width:min(920px, 92vw);
+      display:grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap:18px;
+      align-items:stretch;
+    }
+    @media (max-width: 860px){
+      .wrap{grid-template-columns:1fr}
+    }
+
+    .panel{
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, var(--card), rgba(255,255,255,0.04));
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      backdrop-filter: blur(10px);
+    }
+
+    .title{
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 6px;
+      letter-spacing: 0.2px;
+    }
+    .subtitle{
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .terminal{
+      border-radius: 14px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 14px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.88);
+      min-height: 180px;
+      overflow:hidden;
+      position:relative;
+    }
+    .line{opacity:0; transform: translateY(6px); transition: all 420ms ease;}
+    .line.show{opacity:1; transform: translateY(0);}
+    .warn{color:#ffd166}
+    .ok{color:#7CFFB2}
+    .dim{color: rgba(255,255,255,0.55)}
+
+    .progress{
+      height:10px;
+      border-radius:999px;
+      background: rgba(255,255,255,0.10);
+      overflow:hidden;
+      border: 1px solid rgba(255,255,255,0.10);
+      margin-top: 14px;
+    }
+    .bar{
+      width:0%;
+      height:100%;
+      background: linear-gradient(90deg, rgba(255,209,102,0.9), rgba(124,255,178,0.9));
+      transition: width 1400ms ease;
+    }
+
+    .right{
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+
+    .popup{
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, var(--card2), rgba(255,255,255,0.05));
+      border: 1px solid rgba(255,255,255,0.16);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      position:relative;
+      overflow:hidden;
+      min-height: 160px;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      font-weight: 800;
+      font-size: 16px;
+      margin:0 0 10px;
+    }
+    .badge .dot{
+      width:10px;height:10px;border-radius:50%;
+      background:#ffd166;
+      box-shadow: 0 0 0 6px rgba(255,209,102,0.14);
+    }
+    .msg{
+      margin:0;
+      color: rgba(255,255,255,0.84);
+      line-height:1.5;
+      font-size: 14px;
+    }
+
+    .photoCard{
+      border-radius: var(--radius);
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 12px;
+      display:grid;
+      place-items:center;
+      min-height: 260px;
+      position:relative;
+      overflow:hidden;
+    }
+    .photoCard img{
+      width: 100%;
+      max-width: 360px;
+      height: auto;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+      opacity:0;
+      transform: scale(0.92) translateY(10px);
+      transition: all 600ms ease;
+    }
+    .photoCard img.show{
+      opacity:1;
+      transform: scale(1) translateY(0);
+    }
+    .hint{
+      position:absolute;
+      inset:auto 12px 12px 12px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.62);
+      text-align:center;
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top: 14px;
+    }
+    .btn{
+      appearance:none;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-weight: 650;
+      transition: transform 120ms ease, background 200ms ease;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .btn:hover{background: rgba(255,255,255,0.12)}
+    .btn:active{transform: translateY(1px)}
+  </style>
+</head>
+
+<body>
+  <div class="broken-logo" aria-hidden="true">
+    <svg viewBox="0 0 900 520" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="white" stop-opacity="0.9"/>
+          <stop offset="1" stop-color="white" stop-opacity="0.45"/>
+        </linearGradient>
+      </defs>
+
+      <rect x="120" y="80" width="660" height="360" rx="28" fill="url(#g)" fill-opacity="0.18" stroke="white" stroke-opacity="0.35" stroke-width="3"/>
+      <rect x="150" y="110" width="600" height="40" rx="12" fill="white" fill-opacity="0.15"/>
+      <circle cx="175" cy="130" r="9" fill="white" fill-opacity="0.35"/>
+      <circle cx="205" cy="130" r="9" fill="white" fill-opacity="0.25"/>
+      <circle cx="235" cy="130" r="9" fill="white" fill-opacity="0.20"/>
+
+      <path d="M460 150 L430 220 L500 250 L470 330 L540 360" stroke="white" stroke-opacity="0.55" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M380 230 L310 260 L350 320" stroke="white" stroke-opacity="0.45" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M560 210 L640 250 L600 310" stroke="white" stroke-opacity="0.40" stroke-width="5" fill="none" stroke-linecap="round"/>
+
+      <circle cx="450" cy="300" r="82" fill="none" stroke="white" stroke-opacity="0.55" stroke-width="6"/>
+      <path d="M368 300 H532" stroke="white" stroke-opacity="0.45" stroke-width="5" stroke-linecap="round"/>
+      <path d="M450 218 C420 252 420 348 450 382" stroke="white" stroke-opacity="0.40" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M450 218 C480 252 480 348 450 382" stroke="white" stroke-opacity="0.35" stroke-width="5" fill="none" stroke-linecap="round"/>
+
+      <text x="450" y="420" text-anchor="middle" font-size="44" font-weight="800" fill="white" fill-opacity="0.30">
+        WEBSITE
+      </text>
+      <text x="450" y="465" text-anchor="middle" font-size="26" font-weight="700" fill="white" fill-opacity="0.22">
+        ERROR DETECTED
+      </text>
+    </svg>
+  </div>
+  <div class="noise" aria-hidden="true"></div>
+
+  <div class="wrap">
+    <section class="panel">
+      <h1 class="title">Diagnostics Running…</h1>
+      <p class="subtitle">
+        Don’t worry—auto-fix is scanning the site and applying a patch.
+      </p>
+
+      <div class="terminal" id="terminal" aria-live="polite">
+        <div class="line warn" id="l1">⚠️ Website error detected.</div>
+        <div class="line dim"  id="l2">→ Scanning modules: UI / Animations / LoveButton</div>
+        <div class="line dim"  id="l3">→ Checking distraction sources…</div>
+        <div class="line dim"  id="l4">→ Applying hotfix patch…</div>
+        <div class="line ok"   id="l5">✅ Fix completed successfully.</div>
+      </div>
+
+      <div class="progress" aria-hidden="true"><div class="bar" id="bar"></div></div>
+
+      <div class="actions">
+        <a class="btn" href="index.html">← Back</a>
+        <button class="btn" id="replayBtn" type="button">Replay</button>
+      </div>
+    </section>
+
+    <div class="right">
+      <section class="popup" id="popup">
+        <div class="badge" id="badge">
+          <span class="dot" id="dot"></span>
+          <span id="badgeText">System Alert</span>
+        </div>
+        <p class="msg" id="popupMsg">⚠️ “Website error detected.”</p>
+      </section>
+
+      <section class="photoCard">
+        <!-- Put your photo as image.jpg beside surprise.html -->
+        <img id="photo" src="Image1.jpeg" alt="Surprise photo" />
+        <div class="hint" id="hint">Fixing… please wait ✨</div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const lines = ["l1","l2","l3","l4","l5"].map(id => document.getElementById(id));
+    const bar = document.getElementById("bar");
+    const popupMsg = document.getElementById("popupMsg");
+    const badgeText = document.getElementById("badgeText");
+    const dot = document.getElementById("dot");
+    const hint = document.getElementById("hint");
+    const replayBtn = document.getElementById("replayBtn");
+
+    function resetUI(){
+      lines.forEach(l => l.classList.remove("show"));
+      bar.style.width = "0%";
+      popupMsg.textContent = '⚠️ “Website error detected.”';
+      badgeText.textContent = "System Alert";
+      dot.style.background = "#ffd166";
+      dot.style.boxShadow = "0 0 0 6px rgba(255,209,102,0.14)";
+      photo.classList.remove("show");
+      hint.textContent = "Fixing… please wait ✨";
+      document.title = "System Fixing…";
+    }
+
+    function runSequence(){
+      resetUI();
+
+      setTimeout(() => lines[0].classList.add("show"), 250);
+      setTimeout(() => lines[1].classList.add("show"), 700);
+      setTimeout(() => { lines[2].classList.add("show"); bar.style.width = "35%"; }, 1150);
+      setTimeout(() => { lines[3].classList.add("show"); bar.style.width = "72%"; }, 1650);
+
+      setTimeout(() => {
+        lines[4].classList.add("show");
+        bar.style.width = "100%";
+
+        dot.style.background = "#7CFFB2";
+        dot.style.boxShadow = "0 0 0 6px rgba(124,255,178,0.16)";
+        badgeText.textContent = "Auto-Fix Report";
+        popupMsg.textContent = "✅ “Bug found: You’re distracting the developer because you’re too cute. PLEASE SEND BOOTY PICTURES TO THE DEVELOPER”";
+        hint.textContent = "Patch applied. Surprise unlocked 💖";
+        photo.classList.add("show");
+        document.title = "Fixed ✅";
+      }, 2300);
+    }
+
+    replayBtn.addEventListener("click", runSequence);
+    window.addEventListener("load", runSequence);
+  </script>
+  <script>
+    const photos = [
+      "Image1.jpeg",
+      "Image2.jpeg",
+      "Image3.jpeg",
+      "Image4.jpeg",
+      "Image5.jpeg"
+    ];
+    
+    let currentPhoto = 0;
+    const photo = document.getElementById("photo");
+    
+    setInterval(() => {
+      photo.classList.remove("show");
+      photo.classList.add("fade-out");
+    
+      setTimeout(() => {
+        currentPhoto = (currentPhoto + 1) % photos.length;
+        photo.src = photos[currentPhoto];
+        photo.classList.remove("fade-out");
+        photo.classList.add("show");
+      }, 500);
+    
+    }, 2500);
+    </script>    
+</body>
+</html>
